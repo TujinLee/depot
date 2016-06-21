@@ -1,0 +1,105 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>Model 之外：Django 也可以有 scaffold &mdash; Practical Django 1.3 文档</title>
+    
+    <link rel="stylesheet" href="../_static/flasky.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../',
+        VERSION:     '1.3',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../_static/jquery.js"></script>
+    <script type="text/javascript" src="../_static/underscore.js"></script>
+    <script type="text/javascript" src="../_static/doctools.js"></script>
+    <script type="text/javascript" src="../_static/translations.js"></script>
+    <link rel="top" title="Practical Django 1.3 文档" href="../index.html" />
+    <link rel="next" title="Model 之外：scaffold 生成物分析" href="3.2 scaffold生成物分析.html" />
+    <link rel="prev" title="从 Model 开始：创建第一个模型类" href="../2 从Model开始/2.1 创建第一个模型类.html" /> 
+  </head>
+  <body role="document">
+  
+  
+
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="model-django-scaffold">
+<h1>Model 之外：Django 也可以有 scaffold<a class="headerlink" href="#model-django-scaffold" title="永久链接至标题">¶</a></h1>
+<p>Rails 有一个无用的“神奇”功能，叫做 scaffold。能够在 model 基础上，自动生成 CRUD 的界面。</p>
+<p>说它无用，是因为 Rails 的开发者 David 说，“scaffold 不是应用程序开发的目的，它只是在我们构建应用程序时提供支持。当你设计出产品的列表该如何工作时，你依赖于“支架”“生成器”产生创建，更新和删除的行为，然后在保留这个“动作”时你要替换由“生成器”生成的行为。有时候当你需要一个快速接口时，并且你并不在乎界面的丑陋，“支架”就足够用了。不要指望 scaffold 能满足你程序的所有需要”。</p>
+<p>说它神奇，是因为在 Rails 中你不清楚他是怎么实现的。只告诉你一句话：约定优先于配置。只要名字 xxx，就会 xxx。说得人云里雾里，认为 Rails 真是一个伟大的框架。</p>
+<p>在 Django 的世界中没有这种无用的东西。但是如果你一定要，可以很容易地创建这么一套东西。下面我们就在 depot 项目中引入一个“插件”。前面说过，app 可以在多个 project 之间很容易的复用，我们要引入的就是一个第三方的 app，无需修改，只需要简单配置即可使用。</p>
+<p>这个 app 叫做 django-groundwork。它不实现具体的功能，而是扩展了 manage.py 的命令，使得通过命令行可以生成一些代码/文件。</p>
+<p>下载 django-groundwork 的代码：</p>
+<div class="highlight-python"><div class="highlight"><pre><span></span>$ git clone https://github.com/madhusudancs/django-groundwork.git
+$ ls django-groundwork
+AUTHORS                     README.rst
+LICENSE                     django-groundwork
+</pre></div>
+</div>
+<p>将其中的 django-groundwork 文件夹复制到 depot 文件夹，然后在 settings.py 中加入该 app:</p>
+<div class="highlight-python"><div class="highlight"><pre><span></span><span class="n">INSTALLED_APPS</span> <span class="o">=</span> <span class="p">(</span>
+<span class="c1">#&#39;django.contrib.auth&#39;,</span>
+<span class="c1">#&#39;django.contrib.contenttypes&#39;,</span>
+<span class="c1">#&#39;django.contrib.sessions&#39;,</span>
+<span class="c1">#&#39;django.contrib.sites&#39;,</span>
+<span class="c1">#&#39;django.contrib.messages&#39;,</span>
+<span class="c1">#&#39;django.contrib.staticfiles&#39;,</span>
+<span class="c1"># Uncomment the next line to enable the admin:</span>
+<span class="c1"># &#39;django.contrib.admin&#39;,</span>
+<span class="c1"># Uncomment the next line to enable admin documentation:</span>
+<span class="c1"># &#39;django.contrib.admindocs&#39;,</span>
+<span class="s1">&#39;depotapp&#39;</span><span class="p">,</span>
+<span class="s1">&#39;django-groundwork&#39;</span><span class="p">,</span>
+<span class="p">)</span>
+</pre></div>
+</div>
+<p>即完成了安装。</p>
+<p>安装后，使用 <cite>$ python manage.py help</cite> 可以看到，列出的可用命令中多了一个 groundwork 。其语法是：</p>
+<div class="highlight-python"><div class="highlight"><pre><span></span>$ python manage.py groundwork appname ModelName1 ModelName2
+</pre></div>
+</div>
+<p>接下来使用这个 app 为 Product 生成 scaffold:</p>
+<div class="highlight-python"><div class="highlight"><pre><span></span>$ python manage.py groundwork depotapp Product
+</pre></div>
+</div>
+<p>就会生成所谓的scaffold。</p>
+<p>此时运行开发服务器，就可以访问下面的地址：</p>
+<p><a class="reference external" href="http://localhost:8000/depotapp/product/list/">http://localhost:8000/depotapp/product/list/</a></p>
+<p>访问 Product 列表，并链接到 create，edit，view 等界面。</p>
+<p>图一 Product List</p>
+<img alt="../_images/3.1_product_list.png" src="../_images/3.1_product_list.png" />
+<p>图二 Product Create</p>
+<img alt="../_images/3.1_product_create.png" src="../_images/3.1_product_create.png" />
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+  
+    <a href="http://github.com/xuehao/Practical_Django"><img style="position: fixed; top: 0; right: 0; border: 0;"
+    src="http://s3.amazonaws.com/github/ribbons/forkme_right_darkblue_121621.png" alt="Fork me on GitHub" /></a>
+  
+
+  
+
+  </body>
+</html>

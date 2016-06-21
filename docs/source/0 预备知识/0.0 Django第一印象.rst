@@ -1,0 +1,76 @@
+.. _Django 第一印象:
+
+****************************
+预备知识：Django 第一印象
+****************************
+
+Django (/ˈdʒæŋgoː/) 是用 Python 语言写的开源 Web 开发框架，鼓励快速开发，并遵循 MTV 设计模式。其主要目的是简便、快速的开发数据库驱动的网站。
+
+Django 遵守 BSD 版权，目前最新的稳定版（stable）是2011年9月发布的v1.3.1。
+
+Django 的名称来源于比利时的爵士音乐家 Django Reinhardt，他是一个吉普赛人，主要演奏吉它。
+
+与 Rails 一样，Django 强调 **松耦合、少写代码、快速开发、DRY、一致性** 等原则。但 Django 与 Rails 在设计哲学上最大的不同在于，Django 强调“显式说明优于隐含意义”，这一点来自于 Python 的核心原则。
+
+这一设计哲学的不同使得 Django 与 Rails 有很大的不同：Django 不喜欢“魔术代码”。尽管魔术代码看起来很酷，但是存在着如下问题：
+
+1. 语法晦涩难懂，除了编程语言外，你还需要了解一门自定义的 DSL
+2. 相对于编程语言，DSL 更加不稳定，可能会经常变化
+3. 如果你想理解其实现方式，需要花费比较大的精力
+4. 魔术代码可以很容易地实现某些特定的功能，但是如果你想在此基础上做一些改变，就会变得非常困难
+
+所以，Django 不喜欢“魔术代码”，而是强调代码的可理解、可控制。
+
+比如《Agile Web Development with Rails》中开篇用来吸引人的那个例子，一个关于项目的 Model 类：
+
+.. code-block:: ruby
+
+    class Project < ActiveRecord::Base
+         belongs_to :portfolio
+         has_one :project_manager
+         has_many :milestones
+         has_and_belongs_to_many :categories
+
+         validates_presence_of :name, :description
+         validates_acceptance_of :non_disclosure_agreement
+         validates_uniqueness_of :key
+    end
+
+看上去很神奇对吗？但是你马上就会提出几个问题：
+
+1. 除了关联关系外，对象自身的属性在哪里定义？
+2. non_discolosure_agreement 是什么属性？
+3. validates_xxx 之类的语法到底有多少种？
+4. ...
+
+本文并不是以介绍 Rails 为主，所以上述问题在这里不作回答。但是为了与 Django 的 Model 对比，还需要补全 Rails 模型的另外一个部分：migration。事实上，在 Rails中，上面的 Model 还需要一个 db migrate 类一起才能工作：
+
+.. code-block:: ruby
+
+    class CreateProject < ActiveRecord::Migration
+        def change
+            create_table :projects do |t|
+                t.integer :portfolio_id
+                t.string :name
+                t.text :description
+                ...
+            end
+        end
+    end
+
+Django 的设计是以 Python 类的形式定义数据模型，通过 ORM 与数据库联系起来。同时约定为了避免“猜谜游戏”，不应该仅仅依赖字段的命名来预示其可能的行为，而是通过关键的参数来定义操作。
+
+上述 Model 类在 Django 中以如下简单明了的方式来实现：
+
+::
+
+    class Project(models.Model):
+        portfolio = models.ForeignKey(Portfolio)
+        categories = models.ManyToManyField(Category)
+        name = models.CharField()
+        description = models.TextField()
+
+        # 其中 has_one, has_many 之类的关系只在对端声明 ForeignKey 即可
+        # 本端不用声明，可以直接引用
+
+Django 的代码清楚明白，每一条语句都很明确。这就是 Django 的风格。（顺便说一句，Django 的灵活性不以牺牲外键关联为代价，而 Rails 的数据库中不支持外键关系）。
