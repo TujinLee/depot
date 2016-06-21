@@ -45,7 +45,7 @@
 
     import os
     ... ...
-
+    
     # Additional locations of static files
     HERE = os.path.dirname(__file__)
     STATICFILES_DIRS = (
@@ -61,6 +61,7 @@
 
     from django.contrib.staticfiles.urls import staticfiles_urlpatterns
     ... ...
+
     # for development only
     # This will only work if DEBUG is True.
     urlpatterns += staticfiles_urlpatterns()
