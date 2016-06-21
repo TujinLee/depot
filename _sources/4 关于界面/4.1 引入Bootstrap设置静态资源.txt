@@ -12,7 +12,7 @@
 
 下面让我们来实现这个界面。显然 Web 界面会使用一些静态资源（css，js，image等），要在 Django 中引入静态资源。Django 在正式部署的时候对于静态资源有特殊的处理，在开发阶段，可以有简单的方式让静态资源起作用。
 
-首选在 Depot 目录下面创建一个 static 目录，并将静态资源按合理的组织方式放入其中:
+首先在 Depot 目录下面创建一个 static 目录，并将静态资源按合理的组织方式放入其中:
 
 ::
 
@@ -23,13 +23,14 @@
         images/
       productlist.html
 
-其中 `productlist.html` 是请界面设计师实现的产品清单静态页面；`css/bootstrap.min.css` 是该页面使用的样式表，来自 Bootstrap，将来整个系统都将使用这一套样式风格；`js` 目录现在为空，以后可以将 Javascript 代码放在这里；`images` 文件夹同理。
+其中 `productlist.html` 是请界面设计师实现的产品清单静态页面；`css/bootstrap.min.css` 是该页面使用的样式表，来自 Bootstrap，将来整个系统都将使用这一套样式风格；`js` 目录现在为空，以后可以将 JavaScript 代码放在这里；`images` 文件夹同理。
 
 我们可以看到，Django 对于静态内容的管理非常符合管理。相比之下，Rails 要求你将静态内容放到很怪异的结构中:
 
 ::
 
-    app/assets/
+    app/
+      assets/
       images/
       javascripts/
       stylesheets/
