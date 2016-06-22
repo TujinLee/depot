@@ -1,0 +1,97 @@
+********************************
+Model 之外：scaffold 生成物分析
+********************************
+
+在上一节用一个插件生成了类似 Rails 的 scaffold，其实无非就是 URLconf + MTV。让我们看看具体都生成了哪些东西。
+
+首先是“入口”的定义即 URLconf，打开 `urls.py` :
+
+::
+
+    from django.conf.urls.defaults import patterns, include, url
+    from depot.views import hello
+
+    urlpatterns = patterns('',
+        url(r'^hello/$', hello),
+    )
+
+    urlpatterns += patterns ('',
+        (r'^depotapp/', include('depotapp.urls')),
+    )
+
+上面的代码中增加的配置行表示：以 depotapp 开头的 url 由 `depotapp/urls.py` 文件进行处理。
+
+Django 的 url 配置中，除了 `(正则表达式, view函数)` 的方式外，还支持 `(正则表达式, include文件)` 的方式。通常把 app 自身相关的 url 写到自己的 url 配置文件中，然后在 project 中引用。
+
+接下来看一下生成的 `depotapp/urls.py` 的内容：
+
+::
+
+    from django.conf.urls.defaults import *
+    from models import *
+    from views import *
+
+    urlpatterns = patterns('',
+        (r'product/create/$', create_product),
+        (r'product/list/$', list_product ),
+        (r'product/edit/(?P<id>[^/]+)/$', edit_product),
+        (r'product/view/(?P<id>[^/]+)/$', view_product),
+    )
+
+将 CRU（没有 D）的 URL 映射到了视图。而视图在 `depotapp/views.py` 中定义：
+
+::
+    
+    # -*- coding: utf8 -*-
+    from django import forms
+    from django.template import RequestContext
+    from django.http import HttpResponse, HttpResponseRedirect
+    from django.template.loader import get_template
+    from django.core.paginator import Paginator
+    from django.core.urlresolvers import reverse
+
+    from models import *
+    from forms import *
+
+    def create_product(request):
+        form = ProductForm(request.POST or None) # 创建一个表单对象，以请求对象或空填充
+        if form.is_valid(): # 验证表单是否合法
+            form.save() # 表单写入数据库
+            form = ProductForm() # 重置表单为空
+        t = get_template('depotapp/create_product.html') # 渲染模版
+        c = RequestContext(request,locals())
+        return HttpResponse(t.render(c))
+
+    def list_product(request):
+        list_items = Product.objects.all() # 获取产品列表
+        paginator = Paginator(list_items ,10) # 设置一个分页对象
+        try:
+            page = int(request.GET.get('page', '1')) # 获取页数，异常时默认为第1页
+        except ValueError:
+            page = 1
+        try:
+            list_items = paginator.page(page) # 获取某页产品列表
+        except :
+            list_items = paginator.page(paginator.num_pages) # 页面太大等异常时获取最后一页
+        t = get_template('depotapp/list_product.html')
+        c = RequestContext(request,locals())
+        return HttpResponse(t.render(c))
+
+    def view_product(request, id):
+        product_instance = Product.objects.get(id = id) # 获取某个产品对象
+        t=get_template('depotapp/view_product.html')
+        c=RequestContext(request,locals())
+        return HttpResponse(t.render(c))
+
+    def edit_product(request, id):
+        product_instance = Product.objects.get(id=id)
+        form = ProductForm(request.POST or None, instance = product_instance) # 创建一个表单对象，以产品对象填充
+        if form.is_valid():
+            form.save()
+        t=get_template('depotapp/edit_product.html')
+        c=RequestContext(request,locals())
+        return HttpResponse(t.render(c))
+
+视图中的相关内容比较多，主要的是模板，其次还有模型类、Paginator 分页器、Form 表单等等。
+
+基本涵盖了典型的 Web 应用交互的内容。

@@ -1,0 +1,107 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>关于界面：引入Bootstrap，设置静态资源 &mdash; Practical Django 1.3 文档</title>
+    
+    <link rel="stylesheet" href="../_static/flasky.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../',
+        VERSION:     '1.3',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../_static/jquery.js"></script>
+    <script type="text/javascript" src="../_static/underscore.js"></script>
+    <script type="text/javascript" src="../_static/doctools.js"></script>
+    <script type="text/javascript" src="../_static/translations.js"></script>
+    <link rel="top" title="Practical Django 1.3 文档" href="../index.html" /> 
+  </head>
+  <body role="document">
+  
+  
+
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="bootstrap">
+<h1>关于界面：引入Bootstrap，设置静态资源<a class="headerlink" href="#bootstrap" title="永久链接至标题">¶</a></h1>
+<p>之前生成了 Product 类的 scaffold，但是如同 Rails 的开发者 David 所讲的那样，scaffold 几乎没什么用。所以按照《Agile Web Development with Rails 4th》中的迭代计划，下一步的修改是美化 list 页面：</p>
+<img alt="../_images/4.1_list_page.png" src="../_images/4.1_list_page.png" />
+<p>但是这个界面还是太丑陋了。其实，有了 Bootstrap 后，很多站点都变成了“又黑又硬”的工具条 + “小清新”风格。我们即不能免俗，又懒得自已设计风格，不妨用 Bootstrap 将产品清单界面重新设计成如下的风格：</p>
+<img alt="../_images/4.1_boostrap_page.png" src="../_images/4.1_boostrap_page.png" />
+<p>下面让我们来实现这个界面。显然 Web 界面会使用一些静态资源（css，js，image等），要在 Django 中引入静态资源。Django 在正式部署的时候对于静态资源有特殊的处理，在开发阶段，可以有简单的方式让静态资源起作用。</p>
+<p>首先在 Depot 目录下面创建一个 static 目录，并将静态资源按合理的组织方式放入其中:</p>
+<div class="highlight-python"><div class="highlight"><pre><span></span>static/
+  css/
+    bootstrap.min.css
+  js/
+    images/
+  productlist.html
+</pre></div>
+</div>
+<p>其中 <cite>productlist.html</cite> 是请界面设计师实现的产品清单静态页面；<cite>css/bootstrap.min.css</cite> 是该页面使用的样式表，来自 Bootstrap，将来整个系统都将使用这一套样式风格；<cite>js</cite> 目录现在为空，以后可以将 JavaScript 代码放在这里；<cite>images</cite> 文件夹同理。</p>
+<p>我们可以看到，Django 对于静态内容的管理非常符合管理。相比之下，Rails 要求你将静态内容放到很怪异的结构中:</p>
+<div class="highlight-python"><div class="highlight"><pre><span></span>app/
+  assets/
+  images/
+  javascripts/
+  stylesheets/
+</pre></div>
+</div>
+<p>界面设计师实现的界面要想运行起来，还需要修改相关的路径，或者改变自己的目录设置习惯。这种设计让人难以理解。</p>
+<p>回到 Django，让静态资源起作用只需要简单的配置（下面的做法只适用于开发阶段）：</p>
+<p>修改 <cite>depot/settings.py</cite> 的 <cite>static files</cite> 小节：</p>
+<div class="highlight-python"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">os</span>
+<span class="o">...</span> <span class="o">...</span>
+
+<span class="c1"># Additional locations of static files</span>
+<span class="n">HERE</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">dirname</span><span class="p">(</span><span class="n">__file__</span><span class="p">)</span>
+<span class="n">STATICFILES_DIRS</span> <span class="o">=</span> <span class="p">(</span>
+    <span class="c1"># Put strings here, like &quot;/home/html/static&quot; or &quot;C:/www/django/static&quot;.</span>
+    <span class="c1"># Always use forward slashes, even on Windows.</span>
+    <span class="c1"># Don&#39;t forget to use absolute paths, not relative paths.</span>
+    <span class="n">HERE</span> <span class="o">+</span> <span class="n">STATIC_URL</span><span class="p">,</span>
+<span class="p">)</span>
+</pre></div>
+</div>
+<p>然后在 <cite>depot/urls.py</cite> 中增加 static 的 url 映射：</p>
+<div class="highlight-python"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">django.contrib.staticfiles.urls</span> <span class="kn">import</span> <span class="n">staticfiles_urlpatterns</span>
+<span class="o">...</span> <span class="o">...</span>
+
+<span class="c1"># for development only</span>
+<span class="c1"># This will only work if DEBUG is True.</span>
+<span class="n">urlpatterns</span> <span class="o">+=</span> <span class="n">staticfiles_urlpatterns</span><span class="p">()</span>
+</pre></div>
+</div>
+<p>启动 server，就可以通过 <a class="reference external" href="http://127.0.0.1:8000/static/productlist.html">http://127.0.0.1:8000/static/productlist.html</a> 看到设计好的界面了。</p>
+<p>在下一节，终于可以修改模板，美化产品清单页的样式了。</p>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+  
+    <a href="http://github.com/xuehao/Practical_Django"><img style="position: fixed; top: 0; right: 0; border: 0;"
+    src="http://s3.amazonaws.com/github/ribbons/forkme_right_darkblue_121621.png" alt="Fork me on GitHub" /></a>
+  
+
+  
+
+  </body>
+</html>
