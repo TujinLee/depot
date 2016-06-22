@@ -120,6 +120,7 @@ INSTALLED_APPS = (
     # Uncomment the next line to enable admin documentation:
     # 'django.contrib.admindocs',
     'depotapp',
+    'django-groundwork',
 )
 
 # A sample logging configuration. The only tangible logging
@@ -144,3 +145,6 @@ LOGGING = {
         },
     }
 }
+
+import os
+TEMPLATE_DIRS += (os.path.join(  os.path.dirname(__file__), 'templates') ,)
