@@ -1,4 +1,5 @@
 # Django settings for depot project.
+import os
 
 DEBUG = True
 TEMPLATE_DEBUG = DEBUG
@@ -68,10 +69,12 @@ STATIC_URL = '/static/'
 ADMIN_MEDIA_PREFIX = '/static/admin/'
 
 # Additional locations of static files
+HERE = os.path.dirname(__file__)
 STATICFILES_DIRS = (
     # Put strings here, like "/home/html/static" or "C:/www/django/static".
     # Always use forward slashes, even on Windows.
     # Don't forget to use absolute paths, not relative paths.
+    HERE + STATIC_URL,
 )
 
 # List of finder classes that know how to find static files in

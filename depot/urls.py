@@ -1,4 +1,6 @@
 from django.conf.urls.defaults import patterns, include, url
+from django.contrib.staticfiles.urls import staticfiles_urlpatterns
+
 from .view import hello
 
 urlpatterns = patterns('',
@@ -8,3 +10,5 @@ urlpatterns = patterns('',
 urlpatterns += patterns('',
                         (r'^depotapp/', include('depotapp.urls')),
                         )
+
+urlpatterns += staticfiles_urlpatterns()

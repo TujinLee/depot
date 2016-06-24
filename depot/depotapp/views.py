@@ -18,7 +18,7 @@ def create_product(request):
 
 def list_product(request):
     list_items = Product.objects.all()
-    paginator = Paginator(list_items, 10)
+    paginator = Paginator(list_items, 2)
 
     try:
         page = int(request.GET.get('page', '1'))
