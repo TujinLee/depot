@@ -60,9 +60,7 @@ Django 的名称来源于比利时的爵士音乐家 Django Reinhardt，他是�
 
 Django 的设计是以 Python 类的形式定义数据模型，通过 ORM 与数据库联系起来。同时约定为了避免“猜谜游戏”，不应该仅仅依赖字段的命名来预示其可能的行为，而是通过关键的参数来定义操作。
 
-上述 Model 类在 Django 中以如下简单明了的方式来实现：
-
-::
+上述 Model 类在 Django 中以如下简单明了的方式来实现::
 
     class Project(models.Model):
         portfolio = models.ForeignKey(Portfolio)
@@ -73,4 +71,4 @@ Django 的设计是以 Python 类的形式定义数据模型，通过 ORM 与数
         # 其中 has_one, has_many 之类的关系只在对端声明 ForeignKey 即可
         # 本端不用声明，可以直接引用
 
-Django 的代码清楚明白，每一条语句都很明确。这就是 Django 的风格。（顺便说一句，Django 的灵活性不以牺牲外键关联为代价，而 Rails 的数据库中不支持外键关系）。
+Django 的代码清楚明白，每一条语句都很明确。这就是 Django 的风格。（顺便说一句，Django 的灵活性不以牺牲外键关联为代价，而 Rails 的数据库中不支持外键关联）。

@@ -18,9 +18,7 @@ scaffold 的生成物虽然用处不大，但是给我们带来一些最佳实�
 
 5. 你实现了一个左右结构的 layout，左侧是导航，右侧是内容。你认为这个 layout 应该可以被多个 view 使用。但是你又发现不同的 view 需要的导航是不同的。由于存在几个 view 使用一种导航，另外几个 view 使用另一个导航的情况。由于 DRY，Rails 说，我有 partial。在 view 中可以使用 `<%= render "foo/bar" %>` ，甚至可以使用变量： `<%= render @mypartial %>` ，然后在 `controller/action` 中指定具体的 partial：`render :partial => 'foo/bar'`。尽管，controller 更进一步干预了 view 的细节；尽管，你又要记住：`partial: foo/bar` 意味着 `views/foo/_bar.html.erb`.
 
-6. 如果 view 中的多块内容要插到 layout 的不同地方怎么办？除了主要的内容外，你还可以在view中定义：
-
-  ::
+6. 如果 view 中的多块内容要插到 layout 的不同地方怎么办？除了主要的内容外，你还可以在view中定义::
 
       <% content_for :foo do %>
         foo foo foo
@@ -42,7 +40,7 @@ scaffold 的生成物虽然用处不大，但是给我们带来一些最佳实�
 
 2. 继承。模板继承是 Django 解决共用页面区域 DRY 的一个优雅的解决方案。简单地说就是先构造一个基础框架模板，而后在其子模板中对它所包含站点公用部分和定义块进行重载（override)。基础模板中，将内容不同的部分指定各个内容块：
 
-  ::
+  .. sourcecode:: html+django
 
       ...
       {% block foo %}
@@ -53,7 +51,6 @@ scaffold 的生成物虽然用处不大，但是给我们带来一些最佳实�
       {% block bar %}
       <div>default content of bar</div>
       {% endblock %}
-
       ...
 
 在子模板中指定继承关系并 override 各个内容块即可。继承的写法是 `{% extends "base.html" %}`，注意一定要放在模板的开头部分。

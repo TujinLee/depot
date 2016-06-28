@@ -4,9 +4,7 @@ Model 之外：scaffold 生成物分析
 
 在上一节用一个插件生成了类似 Rails 的 scaffold，其实无非就是 URLconf + MTV。让我们看看具体都生成了哪些东西。
 
-首先是“入口”的定义即 URLconf，打开 `urls.py` :
-
-::
+首先是“入口”的定义即 URLconf，打开 `urls.py` ::
 
     from django.conf.urls.defaults import patterns, include, url
     from depot.views import hello
@@ -23,9 +21,7 @@ Model 之外：scaffold 生成物分析
 
 Django 的 url 配置中，除了 `(正则表达式, view函数)` 的方式外，还支持 `(正则表达式, include文件)` 的方式。通常把 app 自身相关的 url 写到自己的 url 配置文件中，然后在 project 中引用。
 
-接下来看一下生成的 `depotapp/urls.py` 的内容：
-
-::
+接下来看一下生成的 `depotapp/urls.py` 的内容::
 
     from django.conf.urls.defaults import *
     from models import *
@@ -38,10 +34,8 @@ Django 的 url 配置中，除了 `(正则表达式, view函数)` 的方式外�
         (r'product/view/(?P<id>[^/]+)/$', view_product),
     )
 
-将 CRU（没有 D）的 URL 映射到了视图。而视图在 `depotapp/views.py` 中定义：
+将 CRU（没有 D）的 URL 映射到了视图。而视图在 `depotapp/views.py` 中定义::
 
-::
-    
     # -*- coding: utf8 -*-
     from django import forms
     from django.template import RequestContext

@@ -24,7 +24,9 @@
     <script type="text/javascript" src="../_static/underscore.js"></script>
     <script type="text/javascript" src="../_static/doctools.js"></script>
     <script type="text/javascript" src="../_static/translations.js"></script>
-    <link rel="top" title="Practical Django 1.3 文档" href="../index.html" /> 
+    <link rel="top" title="Practical Django 1.3 文档" href="../index.html" />
+    <link rel="next" title="预备知识：URLconf + MTV：Django 眼中的 MVC" href="0.1_Django眼中的MVC.html" />
+    <link rel="prev" title="Django 实战系列" href="../index.html" /> 
   </head>
   <body role="document">
   
@@ -84,7 +86,7 @@
 </pre></div>
 </div>
 <p>Django 的设计是以 Python 类的形式定义数据模型，通过 ORM 与数据库联系起来。同时约定为了避免“猜谜游戏”，不应该仅仅依赖字段的命名来预示其可能的行为，而是通过关键的参数来定义操作。</p>
-<p>上述 Model 类在 Django 中以如下简单明了的方式来实现：</p>
+<p>上述 Model 类在 Django 中以如下简单明了的方式来实现:</p>
 <div class="highlight-python"><div class="highlight"><pre><span></span><span class="k">class</span> <span class="nc">Project</span><span class="p">(</span><span class="n">models</span><span class="o">.</span><span class="n">Model</span><span class="p">):</span>
     <span class="n">portfolio</span> <span class="o">=</span> <span class="n">models</span><span class="o">.</span><span class="n">ForeignKey</span><span class="p">(</span><span class="n">Portfolio</span><span class="p">)</span>
     <span class="n">categories</span> <span class="o">=</span> <span class="n">models</span><span class="o">.</span><span class="n">ManyToManyField</span><span class="p">(</span><span class="n">Category</span><span class="p">)</span>
@@ -95,7 +97,7 @@
     <span class="c1"># 本端不用声明，可以直接引用</span>
 </pre></div>
 </div>
-<p>Django 的代码清楚明白，每一条语句都很明确。这就是 Django 的风格。（顺便说一句，Django 的灵活性不以牺牲外键关联为代价，而 Rails 的数据库中不支持外键关系）。</p>
+<p>Django 的代码清楚明白，每一条语句都很明确。这就是 Django 的风格。（顺便说一句，Django 的灵活性不以牺牲外键关联为代价，而 Rails 的数据库中不支持外键关联）。</p>
 </div>
 
 

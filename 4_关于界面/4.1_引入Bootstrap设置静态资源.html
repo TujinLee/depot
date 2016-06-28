@@ -24,7 +24,9 @@
     <script type="text/javascript" src="../_static/underscore.js"></script>
     <script type="text/javascript" src="../_static/doctools.js"></script>
     <script type="text/javascript" src="../_static/translations.js"></script>
-    <link rel="top" title="Practical Django 1.3 文档" href="../index.html" /> 
+    <link rel="top" title="Practical Django 1.3 文档" href="../index.html" />
+    <link rel="next" title="关于界面：对比 Rails 和 Django 的模板系统" href="4.2_对比Rails和Django的模板系统.html" />
+    <link rel="prev" title="Model 之外：scaffold 生成物分析" href="../3_Model之外/3.2_scaffold生成物分析.html" /> 
   </head>
   <body role="document">
   
@@ -48,7 +50,7 @@
   css/
     bootstrap.min.css
   js/
-    images/
+  images/
   productlist.html
 </pre></div>
 </div>
@@ -63,7 +65,7 @@
 </div>
 <p>界面设计师实现的界面要想运行起来，还需要修改相关的路径，或者改变自己的目录设置习惯。这种设计让人难以理解。</p>
 <p>回到 Django，让静态资源起作用只需要简单的配置（下面的做法只适用于开发阶段）：</p>
-<p>修改 <cite>depot/settings.py</cite> 的 <cite>static files</cite> 小节：</p>
+<p>修改 <cite>depot/settings.py</cite> 的 <cite>static files</cite> 小节:</p>
 <div class="highlight-python"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">os</span>
 <span class="o">...</span> <span class="o">...</span>
 
@@ -77,7 +79,7 @@
 <span class="p">)</span>
 </pre></div>
 </div>
-<p>然后在 <cite>depot/urls.py</cite> 中增加 static 的 url 映射：</p>
+<p>然后在 <cite>depot/urls.py</cite> 中增加 static 的 url 映射:</p>
 <div class="highlight-python"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">django.contrib.staticfiles.urls</span> <span class="kn">import</span> <span class="n">staticfiles_urlpatterns</span>
 <span class="o">...</span> <span class="o">...</span>
 

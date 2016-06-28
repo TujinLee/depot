@@ -12,18 +12,14 @@ Rails 有一个无用的“神奇”功能，叫做 scaffold。能够在 model �
 
 这个 app 叫做 django-groundwork。它不实现具体的功能，而是扩展了 manage.py 的命令，使得通过命令行可以生成一些代码/文件。
 
-下载 django-groundwork 的代码：
-
-::
+下载 django-groundwork 的代码::
 
     $ git clone https://github.com/madhusudancs/django-groundwork.git
     $ ls django-groundwork
     AUTHORS			README.rst
     LICENSE			django-groundwork
 
-将其中的 django-groundwork 文件夹复制到 depot 文件夹，然后在 settings.py 中加入该 app:
-
-::
+将其中的 django-groundwork 文件夹复制到 depot 文件夹，然后在 settings.py 中加入该 app::
 
     INSTALLED_APPS = (
     #'django.contrib.auth',
@@ -42,15 +38,11 @@ Rails 有一个无用的“神奇”功能，叫做 scaffold。能够在 model �
 
 即完成了安装。
 
-安装后，使用 `$ python manage.py help` 可以看到，列出的可用命令中多了一个 groundwork 。其语法是：
-
-::
+安装后，使用 `$ python manage.py help` 可以看到，列出的可用命令中多了一个 groundwork 。其语法是::
 
     $ python manage.py groundwork appname ModelName1 ModelName2
 
-接下来使用这个 app 为 Product 生成 scaffold:
-
-::
+接下来使用这个 app 为 Product 生成 scaffold::
 
     $ python manage.py groundwork depotapp Product
 

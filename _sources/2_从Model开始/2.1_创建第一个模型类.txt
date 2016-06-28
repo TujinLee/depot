@@ -13,15 +13,11 @@
 
 Django 约定必须要创建 app 才能使用模型。这也是 Django 的哲学之一：Django 认为一个 project 包含很多个 Django app；project 提供配置文件，比如数据库连接信息、安装的 app 清单、模板路径等等；而一个 app 是一套 Django 功能的集合，通常包括模型和视图，按 Python 的包结构的方式存在。app 可以在多个 project 之间很容易的复用。比如 Django 自带的注释系统和自动管理界面。
 
-所以我们在原有工程的基础上还需要创建一个 app 。现在假设我们只需要一个 app ，并将其命名为 depotapp 。创建应用的脚本也是使用 project 目录下的 `manage.py`:
-
-::
+所以我们在原有工程的基础上还需要创建一个 app 。现在假设我们只需要一个 app ，并将其命名为 depotapp 。创建应用的脚本也是使用 project 目录下的 `manage.py`::
 
     $ python manage.py startapp depotapp
 
-就会在工程目录下创建一个 depotapp 目录：
-
-::
+就会在工程目录下创建一个 depotapp 目录::
 
     depotapp/
         __init__.py
@@ -58,9 +54,7 @@ so，《Agile Web Development with Rails》中的做法是先创建数据库表�
 
 然后再生成 scaffold（包括 model、controller、test、4个views等等）。
 
-而Django的做法是，编写下面的Model类：
-
-::
+而Django的做法是，编写下面的Model类::
 
     # depot/depotapp/models.py:
 
@@ -79,17 +73,13 @@ so，《Agile Web Development with Rails》中的做法是先创建数据库表�
 
 Django 中的每一件事情都需要明确声明，也就是说，没有你的允许，Django 不会主动去碰你的代码。所以我们还需要在 project 中进行一些配置工作才能让 app 生效。不过这样的配置只需要做一次。
 
-首先要创建数据库并配置整个 project 的数据库连接，为了简单起见，使用 sqlite 数据库。在工程文件夹下创建 db 文件夹和 sqlite 数据库文件：
-
-::
+首先要创建数据库并配置整个 project 的数据库连接，为了简单起见，使用 sqlite 数据库。在工程文件夹下创建 db 文件夹和 sqlite 数据库文件::
 
     $ mkdir db
     $ cd db
     $ sqlite3 development.sqlite3
 
-然后修改配置文件 `settings.py`, 将 DATABASES 改为：
-
-::
+然后修改配置文件 `settings.py`, 将 DATABASES 改为::
 
     DATABASES = {
         'default': {
@@ -104,9 +94,7 @@ Django 中的每一件事情都需要明确声明，也就是说，没有你的�
 
 就完成了数据库的配置。
 
-还需要配置 project 让 depotapp 生效，还是在 `settings.py` 中，将 INSTALLED_APPS 改为：
-
-::
+还需要配置 project 让 depotapp 生效，还是在 `settings.py` 中，将 INSTALLED_APPS 改为::
 
     INSTALLED_APPS = (
         #'django.contrib.auth',
@@ -122,16 +110,12 @@ Django 中的每一件事情都需要明确声明，也就是说，没有你的�
         'depotapp',
     )
 
-接下来就可以使用模型了。先验证一下：
-
-::
+接下来就可以使用模型了。先验证一下::
 
     $ python manage.py validate
     0 errors found
 
-然后可以看一下这个 Model 将会生成什么样的数据库：
-
-::
+然后可以看一下这个 Model 将会生成什么样的数据库::
 
     $ python manage.py sqlall depotapp
     BEGIN;
@@ -145,9 +129,7 @@ Django 中的每一件事情都需要明确声明，也就是说，没有你的�
     ;
     COMMIT;
 
-最后，将模型导入数据库：
-
-::
+最后，将模型导入数据库::
 
     $ python manage.py syncdb
     Creating tables ...

@@ -60,9 +60,7 @@ Django 的名称来源于比利时的爵士音乐家 Django Reinhardt，他是�
 
 Django 的设计是以 Python 类的形式定义数据模型，通过 ORM 与数据库联系起来。同时约定为了避免“猜谜游戏”，不应该仅仅依赖字段的命名来预示其可能的行为，而是通过关键的参数来定义操作。
 
-上述 Model 类在 Django 中以如下简单明了的方式来实现：
-
-::
+上述 Model 类在 Django 中以如下简单明了的方式来实现::
 
     class Project(models.Model):
         portfolio = models.ForeignKey(Portfolio)

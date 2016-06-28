@@ -24,7 +24,9 @@
     <script type="text/javascript" src="../_static/underscore.js"></script>
     <script type="text/javascript" src="../_static/doctools.js"></script>
     <script type="text/javascript" src="../_static/translations.js"></script>
-    <link rel="top" title="Practical Django 1.3 文档" href="../index.html" /> 
+    <link rel="top" title="Practical Django 1.3 文档" href="../index.html" />
+    <link rel="next" title="Model 之外：Django 也可以有 scaffold" href="../3_Model之外/3.1_Django也可以有scaffold.html" />
+    <link rel="prev" title="开发目标：需求分析和设计" href="../1_开发目标/1.1_需求分析和设计.html" /> 
   </head>
   <body role="document">
   
@@ -48,7 +50,7 @@
 <div class="highlight-python"><div class="highlight"><pre><span></span>$ python manage.py startapp depotapp
 </pre></div>
 </div>
-<p>就会在工程目录下创建一个 depotapp 目录：</p>
+<p>就会在工程目录下创建一个 depotapp 目录:</p>
 <div class="highlight-python"><div class="highlight"><pre><span></span>depotapp/
     __init__.py
     models.py
@@ -81,7 +83,7 @@
 </pre></div>
 </div>
 <p>然后再生成 scaffold（包括 model、controller、test、4个views等等）。</p>
-<p>而Django的做法是，编写下面的Model类：</p>
+<p>而Django的做法是，编写下面的Model类:</p>
 <div class="highlight-python"><div class="highlight"><pre><span></span><span class="c1"># depot/depotapp/models.py:</span>
 
 <span class="kn">from</span> <span class="nn">django.db</span> <span class="kn">import</span> <span class="n">models</span>
@@ -98,13 +100,13 @@
 <div class="section" id="id1">
 <h2>部署模型<a class="headerlink" href="#id1" title="永久链接至标题">¶</a></h2>
 <p>Django 中的每一件事情都需要明确声明，也就是说，没有你的允许，Django 不会主动去碰你的代码。所以我们还需要在 project 中进行一些配置工作才能让 app 生效。不过这样的配置只需要做一次。</p>
-<p>首先要创建数据库并配置整个 project 的数据库连接，为了简单起见，使用 sqlite 数据库。在工程文件夹下创建 db 文件夹和 sqlite 数据库文件：</p>
+<p>首先要创建数据库并配置整个 project 的数据库连接，为了简单起见，使用 sqlite 数据库。在工程文件夹下创建 db 文件夹和 sqlite 数据库文件:</p>
 <div class="highlight-python"><div class="highlight"><pre><span></span>$ mkdir db
 $ cd db
 $ sqlite3 development.sqlite3
 </pre></div>
 </div>
-<p>然后修改配置文件 <cite>settings.py</cite>, 将 DATABASES 改为：</p>
+<p>然后修改配置文件 <cite>settings.py</cite>, 将 DATABASES 改为:</p>
 <div class="highlight-python"><div class="highlight"><pre><span></span><span class="n">DATABASES</span> <span class="o">=</span> <span class="p">{</span>
     <span class="s1">&#39;default&#39;</span><span class="p">:</span> <span class="p">{</span>
         <span class="s1">&#39;ENGINE&#39;</span><span class="p">:</span> <span class="s1">&#39;django.db.backends.sqlite3&#39;</span><span class="p">,</span>
@@ -118,7 +120,7 @@ $ sqlite3 development.sqlite3
 </pre></div>
 </div>
 <p>就完成了数据库的配置。</p>
-<p>还需要配置 project 让 depotapp 生效，还是在 <cite>settings.py</cite> 中，将 INSTALLED_APPS 改为：</p>
+<p>还需要配置 project 让 depotapp 生效，还是在 <cite>settings.py</cite> 中，将 INSTALLED_APPS 改为:</p>
 <div class="highlight-python"><div class="highlight"><pre><span></span><span class="n">INSTALLED_APPS</span> <span class="o">=</span> <span class="p">(</span>
     <span class="c1">#&#39;django.contrib.auth&#39;,</span>
     <span class="c1">#&#39;django.contrib.contenttypes&#39;,</span>
@@ -134,12 +136,12 @@ $ sqlite3 development.sqlite3
 <span class="p">)</span>
 </pre></div>
 </div>
-<p>接下来就可以使用模型了。先验证一下：</p>
+<p>接下来就可以使用模型了。先验证一下:</p>
 <div class="highlight-python"><div class="highlight"><pre><span></span>$ python manage.py validate
 0 errors found
 </pre></div>
 </div>
-<p>然后可以看一下这个 Model 将会生成什么样的数据库：</p>
+<p>然后可以看一下这个 Model 将会生成什么样的数据库:</p>
 <div class="highlight-python"><div class="highlight"><pre><span></span>$ python manage.py sqlall depotapp
 BEGIN;
 CREATE TABLE &quot;depotapp_product&quot; (
@@ -153,7 +155,7 @@ CREATE TABLE &quot;depotapp_product&quot; (
 COMMIT;
 </pre></div>
 </div>
-<p>最后，将模型导入数据库：</p>
+<p>最后，将模型导入数据库:</p>
 <div class="highlight-python"><div class="highlight"><pre><span></span>$ python manage.py syncdb
 Creating tables ...
 Creating table depotapp_product

@@ -28,15 +28,11 @@
 
 Django 作为一个 Web 框架，第一步应该是能够在浏览器中看到页面。如果已经安装好环境的话。
 
-首先创建工程，即开始创建名为 *depot* 的工程：
-
-::
+首先创建工程，即开始创建名为 *depot* 的工程::
 
     $ django-admin.py startproject depot
 
-与 Rails 相比，过程很安静，结果很干净。如下：
-
-::
+与 Rails 相比，过程很安静，结果很干净。如下::
 
     depot/
         __init__.py
@@ -53,16 +49,12 @@ Django 作为一个 Web 框架，第一步应该是能够在浏览器中看到�
 
 与 Rails 不同，Django 初始工程的文件很少，可以很容易地阅读所有的代码。但这些文件已经构成了一个可运行的 Django 应用。
 
-进入工程目录并运行该工程：
-
-::
+进入工程目录并运行该工程::
 
     $ cd depot/
     $ python manage.py runserver
 
-可以看到一些提示信息：
-
-::
+可以看到一些提示信息::
 
     Validating models...
 
@@ -71,7 +63,7 @@ Django 作为一个 Web 框架，第一步应该是能够在浏览器中看到�
     Development server is running at http://127.0.0.1:8000/
     Quit the server with CONTROL-C.
 
-此时 Web Server （开发环境）已经运行了，用浏览器访问http://127.0.0.1:8000/，可以看到如下的界面：
+此时 Web Server （开发环境）已经运行了，用浏览器访问 http://127.0.0.1:8000/，可以看到如下的界面：
 
 .. image:: ../_images/0.2_hello_world.png
 
@@ -86,9 +78,7 @@ Django Web 应用中通常包含 URLconf, view, template, model 四个部分。�
 
 让我们把“需求”明确一下，**hello,Django！** 实现如下功能：在浏览器中输入 http://127.0.0.1:8000/hello, 显示 `hello Django!`。
 
-首先要实现一个视图（view) 来响应请求。在 Django 中视图是一个函数，该函数接受一个 HttpRequest 参数，并返回一个 HttpResponse。我们可以在任何地方定义这个函数，但通常会放在 Django app 的 views.py 文件中。在 **hello,Django!** 中我们不需要创建一个 Django app（因为不需要 model），所以可以在项目目录 Depot 中创建一个 view.py 文件，并定义 hello 视图函数：
-
-::
+首先要实现一个视图（view) 来响应请求。在 Django 中视图是一个函数，该函数接受一个 HttpRequest 参数，并返回一个 HttpResponse。我们可以在任何地方定义这个函数，但通常会放在 Django app 的 views.py 文件中。在 **hello,Django!** 中我们不需要创建一个 Django app（因为不需要 model），所以可以在项目目录 Depot 中创建一个 view.py 文件，并定义 hello 视图函数::
 
     # depot/views.py:
 
@@ -99,9 +89,7 @@ Django Web 应用中通常包含 URLconf, view, template, model 四个部分。�
 
 接下来是将前面定义的 URL 映射到这个视图函数。这是由 URLconf 完成的。URLconf 的本质是 URL 模式以及要为该 URL 模式调用的视图函数之间的映射表。
 
-打开生成的 urls.py 文件，先在文件前面 import 刚才创建的 view，然后在 tuple 类型的变量 urlpatterns 中加入 hello 的映射关系：
-
-::
+打开生成的 urls.py 文件，先在文件前面 import 刚才创建的 view，然后在 tuple 类型的变量 urlpatterns 中加入 hello 的映射关系::
 
     # depot/urls.py
 

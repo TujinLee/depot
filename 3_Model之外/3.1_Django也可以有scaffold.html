@@ -24,7 +24,9 @@
     <script type="text/javascript" src="../_static/underscore.js"></script>
     <script type="text/javascript" src="../_static/doctools.js"></script>
     <script type="text/javascript" src="../_static/translations.js"></script>
-    <link rel="top" title="Practical Django 1.3 文档" href="../index.html" /> 
+    <link rel="top" title="Practical Django 1.3 文档" href="../index.html" />
+    <link rel="next" title="Model 之外：scaffold 生成物分析" href="3.2_scaffold生成物分析.html" />
+    <link rel="prev" title="从 Model 开始：创建第一个模型类" href="../2_从Model开始/2.1_创建第一个模型类.html" /> 
   </head>
   <body role="document">
   
@@ -43,7 +45,7 @@
 <p>说它神奇，是因为在 Rails 中你不清楚他是怎么实现的。只告诉你一句话：约定优先于配置。只要名字 xxx，就会 xxx。说得人云里雾里，认为 Rails 真是一个伟大的框架。</p>
 <p>在 Django 的世界中没有这种无用的东西。但是如果你一定要，可以很容易地创建这么一套东西。下面我们就在 depot 项目中引入一个“插件”。前面说过，app 可以在多个 project 之间很容易的复用，我们要引入的就是一个第三方的 app，无需修改，只需要简单配置即可使用。</p>
 <p>这个 app 叫做 django-groundwork。它不实现具体的功能，而是扩展了 manage.py 的命令，使得通过命令行可以生成一些代码/文件。</p>
-<p>下载 django-groundwork 的代码：</p>
+<p>下载 django-groundwork 的代码:</p>
 <div class="highlight-python"><div class="highlight"><pre><span></span>$ git clone https://github.com/madhusudancs/django-groundwork.git
 $ ls django-groundwork
 AUTHORS                     README.rst
@@ -68,7 +70,7 @@ LICENSE                     django-groundwork
 </pre></div>
 </div>
 <p>即完成了安装。</p>
-<p>安装后，使用 <cite>$ python manage.py help</cite> 可以看到，列出的可用命令中多了一个 groundwork 。其语法是：</p>
+<p>安装后，使用 <cite>$ python manage.py help</cite> 可以看到，列出的可用命令中多了一个 groundwork 。其语法是:</p>
 <div class="highlight-python"><div class="highlight"><pre><span></span>$ python manage.py groundwork appname ModelName1 ModelName2
 </pre></div>
 </div>
