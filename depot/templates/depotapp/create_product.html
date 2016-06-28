@@ -1,15 +1,17 @@
 {% extends "base.html" %}
 
-{% block title %} Product - Create {% endblock %}
+{% block title %} 创建产品 {% endblock %}
 
-{% block heading %} <h1>Product - Create</h1> {% endblock %}
 {% block content %}
+
+<h2>创建产品</h2>
+
 <table>
-<form action="" method="POST"> {% csrf_token %}
-  {{form}}
-  <tr>
-    <td colspan="2" align="right"><input type="submit" value="Create"/></td>
-  </tr>
-</form>
+    <form action="" method="POST">
+        {% csrf_token %}
+        {{ form }}
+        <tr><td colspan="2" align="right"><input type="submit" value="创建"/></td></tr>
+    </form>
 </table>
+
 {% endblock %}

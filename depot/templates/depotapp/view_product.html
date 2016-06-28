@@ -1,11 +1,15 @@
-
 {% extends "base.html" %}
 
-{% block title %} Product - View {% endblock %}
+{% block title %} 查看产品 {% endblock %}
 
-{% block heading %} <h1> Product</h1><h2>View</h2>  {% endblock %}
-{% block content %} 
-<table>
-{{ product_instance }}
-</table>
+{% block content %}
+
+<h2>查看产品</h2>
+
+<h2>{{ product_instance.title }}</h2>
+
+<div class="row" style="padding-top:10">
+    {{ product_instance.description }}
+</div>
+
 {% endblock %}
