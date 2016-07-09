@@ -1,0 +1,114 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>逻辑层：对比 Rails 与 Django 的输入校验机制 &mdash; Practical Django 1.3 文档</title>
+    
+    <link rel="stylesheet" href="../_static/flasky.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../',
+        VERSION:     '1.3',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../_static/jquery.js"></script>
+    <script type="text/javascript" src="../_static/underscore.js"></script>
+    <script type="text/javascript" src="../_static/doctools.js"></script>
+    <script type="text/javascript" src="../_static/translations.js"></script>
+    <link rel="top" title="Practical Django 1.3 文档" href="../index.html" />
+    <link rel="prev" title="关于界面：改造 ProductList 界面" href="../4_关于界面/4.3_改造ProductList界面.html" /> 
+  </head>
+  <body role="document">
+  
+  
+
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="rails-django">
+<h1>逻辑层：对比 Rails 与 Django 的输入校验机制<a class="headerlink" href="#rails-django" title="永久链接至标题">¶</a></h1>
+<p>Rails 有一个“简洁、完美的验证机制，无比强大的表达式和验证框架”。在《Agile Web Development with Rails 4th》一书的7.1节向我们展示了如何验证 Product：</p>
+<div class="highlight-ruby"><div class="highlight"><pre><span></span><span class="k">class</span> <span class="nc">Product</span> <span class="o">&lt;</span> <span class="no">ActiveRecord</span><span class="o">::</span><span class="no">Base</span>
+    <span class="n">validates</span> <span class="ss">:title</span><span class="p">,</span> <span class="ss">:description</span><span class="p">,</span> <span class="ss">:image_url</span><span class="p">,</span> <span class="ss">:presence</span> <span class="o">=&gt;</span> <span class="kp">true</span>
+    <span class="n">validates</span> <span class="ss">:price</span><span class="p">,</span> <span class="ss">:numericality</span> <span class="o">=&gt;</span> <span class="p">{</span><span class="ss">:greater_than_or_equal_to</span> <span class="o">=&gt;</span> <span class="mi">0</span><span class="o">.</span><span class="mo">01</span><span class="p">}</span>
+    <span class="n">validates</span> <span class="ss">:title</span><span class="p">,</span> <span class="ss">:uniqueness</span> <span class="o">=&gt;</span> <span class="kp">true</span>
+    <span class="n">validates</span> <span class="ss">:image_url</span><span class="p">,</span> <span class="ss">:format</span> <span class="o">=&gt;</span> <span class="p">{</span>
+        <span class="ss">:with</span> <span class="o">=&gt;</span> <span class="sr">%r{\.(gif|jpg|png)$}i</span><span class="p">,</span>
+        <span class="ss">:message</span> <span class="o">=&gt;</span> <span class="s1">&#39;must be a URL for GIF, JPG or PNG image.&#39;</span>
+    <span class="p">}</span>
+<span class="k">end</span>
+</pre></div>
+</div>
+<p>还是需要解释一下：</p>
+<ul class="simple">
+<li><cite>validates :title, :description, :image_url, :presence =&gt; true</cite>：这三个字段不能为空。Rails 默认是允许为空。而且由于 model 与 migration 是分开定义的，你可以在 migration 中定义字段不能为空而 model 中可以为空，或者反之。</li>
+<li><cite>validates :price, :numericality =&gt; {:greater_than_or_equal_to =&gt; 0.01}</cite>：price 字段应该是有效的数字并且不小于0.01。</li>
+<li><cite>validates :image_url, :format =&gt; {…}: image_url</cite>：必须以三种扩展名结尾，这里没有验证是否为有效的 url。</li>
+</ul>
+<p>更加可怕的是，这个验证语法是 Rails 3.0 开始支持的，而在此之前的版本要写成这样：</p>
+<div class="highlight-ruby"><div class="highlight"><pre><span></span><span class="k">class</span> <span class="nc">Product</span> <span class="o">&lt;</span> <span class="no">ActiveRecord</span><span class="o">::</span><span class="no">Base</span>
+    <span class="n">validates_presence_of</span> <span class="ss">:title</span><span class="p">,</span> <span class="ss">:description</span><span class="p">,</span> <span class="ss">:image_url</span>
+    <span class="n">validates_numericality_of</span> <span class="ss">:price</span>
+    <span class="n">validates_format_of</span> <span class="ss">:image_url</span><span class="p">,</span><span class="ss">:with</span> <span class="o">=&gt;</span> <span class="sr">%r{^http:.+.(gif|jpg|png)$}i</span><span class="p">,</span>
+    <span class="ss">:message</span> <span class="o">=&gt;</span> <span class="s2">&quot;must be a URL for a GIF, JPG, or PNG image&quot;</span>
+    <span class="kp">protected</span>
+        <span class="k">def</span> <span class="nf">validate</span>
+            <span class="n">errors</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="ss">:price</span><span class="p">,</span> <span class="s2">&quot;should be positive&quot;</span><span class="p">)</span> <span class="k">unless</span> <span class="n">price</span><span class="o">.</span><span class="n">nil?</span> <span class="o">||</span> <span class="n">price</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="o">.</span><span class="mi">0</span>
+        <span class="k">end</span>
+<span class="k">end</span>
+</pre></div>
+</div>
+<p>再让我们看看“简洁”的 Rails 验证还有哪些功能（旧版语法）：</p>
+<ul class="simple">
+<li><cite>validates_acceptance_of</cite>：验证指定checkbox应该选中。这个怎么看都应该是form中的验证而与model无关</li>
+<li><cite>validates_associated</cite>：验证关联关系</li>
+<li><cite>validates_confirmation_of</cite>：验证xxx与xxx_confirmation的值应该相同。  这个怎么看也应该是form中的验证而与model无关</li>
+<li><cite>validates_length_of</cite>：检查长度</li>
+<li><cite>validates_each</cite>：使用block检验一个或一个以上参数</li>
+<li><cite>validates_exclusion_of</cite>：确定被检对象不包括指定数据</li>
+<li><cite>validates_inclusion_of</cite>：确认对象包括在指定范围</li>
+<li><cite>validates_uniqueness_of</cite>：检验对象是否不重复</li>
+</ul>
+<p>也许还有 more and more, and more, and more…</p>
+<p>回到 Django。</p>
+<p>Django 的验证有3层机制：</p>
+<ol class="arabic simple">
+<li>Field 类型验证：除了能够对应到数据库字段类型的 Field 类型外，还有 EmailField，FileField，FilePathField，ImageField，IPAddressField，PhoneNumberField，URLField，XMLField 等。</li>
+<li>Field 选项验证：如 null=true，blank=true，choices，editable，unique，unique_for_date，unique_for_month，unique_for_year 等等。有些 Field 还有自己独有的选项，也可以用来约束数据。</li>
+<li>表单（Form）验证：还可以在 Form 中定义验证方法。可以定义整个 Form 的验证方法 clean，或者针对某个表单项的验证方法：clean_xxx。</li>
+</ol>
+<p>前面建立的 Product 模型中，已经默认加入了不能为空、要求符合数字等验证，所以还需要进行如下验证：</p>
+<ol class="arabic simple">
+<li>验证 price&gt;0：需要在 Form 中验证；</li>
+<li>验证 title 唯一：在 Model 中验证；</li>
+<li>验证 image_url 的扩展名：在 Form中 验证，还可以顺便在 Model 中将其改为 URLField 类型。</li>
+</ol>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+  
+    <a href="http://github.com/xuehao/Practical_Django"><img style="position: fixed; top: 0; right: 0; border: 0;"
+    src="http://s3.amazonaws.com/github/ribbons/forkme_right_darkblue_121621.png" alt="Fork me on GitHub" /></a>
+  
+
+  
+
+  </body>
+</html>

@@ -1,0 +1,290 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>逻辑层：单元测试 &mdash; Practical Django 1.3 文档</title>
+    
+    <link rel="stylesheet" href="../_static/flasky.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../',
+        VERSION:     '1.3',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../_static/jquery.js"></script>
+    <script type="text/javascript" src="../_static/underscore.js"></script>
+    <script type="text/javascript" src="../_static/doctools.js"></script>
+    <script type="text/javascript" src="../_static/translations.js"></script>
+    <link rel="top" title="Practical Django 1.3 文档" href="../index.html" />
+    <link rel="prev" title="逻辑层：实现 Product 的输入校验" href="5.2_实现Product的输入校验.html" /> 
+  </head>
+  <body role="document">
+  
+  
+
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="id1">
+<h1>逻辑层：单元测试<a class="headerlink" href="#id1" title="永久链接至标题">¶</a></h1>
+<p>尽早进行单元测试（UnitTest）是比较好的做法，极端的情况甚至强调“测试先行”。现在我们已经有了第一个 model 类和 Form 类，是时候开始写测试代码了。</p>
+<p>Django 支持 Python 的单元测试（unit test）和文本测试（doc test），我们这里主要讨论单元测试的方式。这里不对单元测试的理论做过多的阐述，假设你已经熟悉了下列概念：test suite，test case，test/test action，test data，assert 等等。</p>
+<p>在单元测试方面，Django 继承 Python 的 unittest.TestCase 实现了自己的 django.test.TestCase，编写测试用例通常从这里开始。测试代码通常位于 app 的 tests.py 文件中（也可以在 <cite>models.py</cite> 中编写，但是我不建议这样做）。在 Django 生成的 depotapp 中，已经包含了这个文件，并且其中包含了一个测试用例的样例:</p>
+<div class="highlight-python"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">django.test</span> <span class="kn">import</span> <span class="n">TestCase</span>
+
+
+<span class="k">class</span> <span class="nc">SimpleTest</span><span class="p">(</span><span class="n">TestCase</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">test_basic_addition</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Tests that 1 + 1 always equals 2.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertEqual</span><span class="p">(</span><span class="mi">1</span> <span class="o">+</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>你可以有几种方式运行单元测试：</p>
+<ul class="simple">
+<li><cite>python manage.py test</cite>：执行所有的测试用例</li>
+<li><cite>python manage.py test app_name</cite>：执行该app的所有测试用例</li>
+<li><cite>python manage.py test app_name.case_name</cite>：执行指定的测试用例</li>
+</ul>
+<p>用第三种方式执行上面提供的样例，结果如下:</p>
+<div class="highlight-python"><div class="highlight"><pre><span></span>$ python manage.py test depotapp.Simplest
+Creating test database for alias &#39;default&#39;...
+.
+----------------------------------------------------------------------
+Ran 1 test in 0.000s
+
+OK
+Destroying test database for alias &#39;default&#39;...
+</pre></div>
+</div>
+<p>你可能会主要到，输出信息中包括了创建和删除数据库的操作。为了避免测试数据造成的影响，测试过程会使用一个单独的数据库，关于如何指定测试数据库 的细节，请查阅 Django 文档。在我们的例子中，由于使用 sqlite 数据库，Django 将默认采用内存数据库来进行测试。</p>
+<p>下面就让我们来编写测试用例。在《Agile Web Development with Rails 4th》中，7.2节，最终实现的 ProductTest 代码如下：</p>
+<div class="highlight-ruby"><div class="highlight"><pre><span></span><span class="k">class</span> <span class="nc">ProductTest</span> <span class="o">&lt;</span> <span class="no">ActiveSupport</span><span class="o">::</span><span class="no">TestCase</span>
+    <span class="nb">test</span> <span class="s2">&quot;product attributes must not be empty&quot;</span> <span class="k">do</span>
+        <span class="n">product</span> <span class="o">=</span> <span class="no">Product</span><span class="o">.</span><span class="n">new</span>
+        <span class="n">assert</span> <span class="n">product</span><span class="o">.</span><span class="n">invalid?</span>
+        <span class="n">assert</span> <span class="n">product</span><span class="o">.</span><span class="n">errors</span><span class="o">[</span><span class="ss">:title</span><span class="o">].</span><span class="n">any?</span>
+        <span class="n">assert</span> <span class="n">product</span><span class="o">.</span><span class="n">errors</span><span class="o">[</span><span class="ss">:description</span><span class="o">].</span><span class="n">any?</span>
+        <span class="n">assert</span> <span class="n">product</span><span class="o">.</span><span class="n">errors</span><span class="o">[</span><span class="ss">:price</span><span class="o">].</span><span class="n">any?</span>
+        <span class="n">assert</span> <span class="n">product</span><span class="o">.</span><span class="n">errors</span><span class="o">[</span><span class="ss">:image_url</span><span class="o">].</span><span class="n">any?</span>
+    <span class="k">end</span>
+
+    <span class="nb">test</span> <span class="s2">&quot;product price must be positive&quot;</span> <span class="k">do</span>
+        <span class="n">product</span> <span class="o">=</span> <span class="no">Product</span><span class="o">.</span><span class="n">new</span><span class="p">(</span><span class="ss">:title</span> <span class="o">=&gt;</span> <span class="s2">&quot;My Book Title&quot;</span><span class="p">,</span>
+                              <span class="ss">:description</span> <span class="o">=&gt;</span> <span class="s2">&quot;yyy&quot;</span><span class="p">,</span>
+                              <span class="ss">:image_url</span> <span class="o">=&gt;</span> <span class="s2">&quot;zzz.jpg&quot;</span><span class="p">)</span>
+        <span class="n">product</span><span class="o">.</span><span class="n">price</span> <span class="o">=</span> <span class="o">-</span><span class="mi">1</span>
+        <span class="n">assert</span> <span class="n">product</span><span class="o">.</span><span class="n">invalid?</span>
+        <span class="n">assert_equal</span> <span class="s2">&quot;must be greater than or equal to 0.01&quot;</span><span class="p">,</span>
+            <span class="n">product</span><span class="o">.</span><span class="n">errors</span><span class="o">[</span><span class="ss">:price</span><span class="o">].</span><span class="n">join</span><span class="p">(</span><span class="s1">&#39;; &#39;</span><span class="p">)</span>
+
+        <span class="n">product</span><span class="o">.</span><span class="n">price</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="n">assert</span> <span class="n">product</span><span class="o">.</span><span class="n">invalid?</span>
+        <span class="n">assert_equal</span> <span class="s2">&quot;must be greater than or equal to 0.01&quot;</span><span class="p">,</span>
+            <span class="n">product</span><span class="o">.</span><span class="n">errors</span><span class="o">[</span><span class="ss">:price</span><span class="o">].</span><span class="n">join</span><span class="p">(</span><span class="s1">&#39;; &#39;</span><span class="p">)</span>
+
+        <span class="n">product</span><span class="o">.</span><span class="n">price</span> <span class="o">=</span> <span class="mi">1</span>
+        <span class="n">assert</span> <span class="n">product</span><span class="o">.</span><span class="n">valid?</span>
+    <span class="k">end</span>
+
+    <span class="k">def</span> <span class="nf">new_product</span><span class="p">(</span><span class="n">image_url</span><span class="p">)</span>
+        <span class="no">Product</span><span class="o">.</span><span class="n">new</span><span class="p">(</span><span class="ss">:title</span> <span class="o">=&gt;</span> <span class="s2">&quot;My Book Title&quot;</span><span class="p">,</span>
+                    <span class="ss">:description</span> <span class="o">=&gt;</span> <span class="s2">&quot;yyy&quot;</span><span class="p">,</span>
+                    <span class="ss">:price</span> <span class="o">=&gt;</span> <span class="mi">1</span><span class="p">,</span>
+                    <span class="ss">:image_url</span> <span class="o">=&gt;</span> <span class="n">image_url</span><span class="p">)</span>
+    <span class="k">end</span>
+
+    <span class="nb">test</span> <span class="s2">&quot;image url&quot;</span> <span class="k">do</span>
+        <span class="n">ok</span> <span class="o">=</span> <span class="sx">%w{ fred.gif fred.jpg fred.png FRED.JPG FRED.Jpg</span>
+<span class="sx">                http://a.b.c/x/y/z/fred.gif }</span>
+        <span class="n">bad</span> <span class="o">=</span> <span class="sx">%w{ fred.doc fred.gif/more fred.gif.more }</span>
+
+        <span class="n">ok</span><span class="o">.</span><span class="n">each</span> <span class="k">do</span> <span class="o">|</span><span class="nb">name</span><span class="o">|</span>
+            <span class="n">assert</span> <span class="n">new_product</span><span class="p">(</span><span class="nb">name</span><span class="p">)</span><span class="o">.</span><span class="n">valid?</span><span class="p">,</span> <span class="s2">&quot;</span><span class="si">#{</span><span class="nb">name</span><span class="si">}</span><span class="s2"> shouldn&#39;t be invalid&quot;</span>
+        <span class="k">end</span>
+
+        <span class="n">bad</span><span class="o">.</span><span class="n">each</span> <span class="k">do</span> <span class="o">|</span><span class="nb">name</span><span class="o">|</span>
+            <span class="n">assert</span> <span class="n">new_product</span><span class="p">(</span><span class="nb">name</span><span class="p">)</span><span class="o">.</span><span class="n">invalid?</span><span class="p">,</span> <span class="s2">&quot;</span><span class="si">#{</span><span class="nb">name</span><span class="si">}</span><span class="s2"> shouldn&#39;t be valid&quot;</span>
+        <span class="k">end</span>
+    <span class="k">end</span>
+
+    <span class="nb">test</span> <span class="s2">&quot;product is not valid without a unique title&quot;</span> <span class="k">do</span>
+        <span class="n">product</span> <span class="o">=</span> <span class="no">Product</span><span class="o">.</span><span class="n">new</span><span class="p">(</span><span class="ss">:title</span> <span class="o">=&gt;</span> <span class="n">products</span><span class="p">(</span><span class="ss">:ruby</span><span class="p">)</span><span class="o">.</span><span class="n">title</span><span class="p">,</span>
+                              <span class="ss">:description</span> <span class="o">=&gt;</span> <span class="s2">&quot;yyy&quot;</span><span class="p">,</span>
+                              <span class="ss">:price</span> <span class="o">=&gt;</span> <span class="mi">1</span><span class="p">,</span>
+                              <span class="ss">:image_url</span> <span class="o">=&gt;</span> <span class="s2">&quot;fred.gif&quot;</span><span class="p">)</span>
+        <span class="n">assert</span> <span class="o">!</span><span class="n">product</span><span class="o">.</span><span class="n">save</span>
+        <span class="n">assert_equal</span> <span class="s2">&quot;has already been taken&quot;</span><span class="p">,</span> <span class="n">product</span><span class="o">.</span><span class="n">errors</span><span class="o">[</span><span class="ss">:title</span><span class="o">].</span><span class="n">join</span><span class="p">(</span><span class="s1">&#39;; &#39;</span><span class="p">)</span>
+    <span class="k">end</span>
+
+    <span class="nb">test</span> <span class="s2">&quot;product is not valid without a unique title - i18n&quot;</span> <span class="k">do</span>
+        <span class="n">product</span> <span class="o">=</span> <span class="no">Product</span><span class="o">.</span><span class="n">new</span><span class="p">(</span><span class="ss">:title</span> <span class="o">=&gt;</span> <span class="n">products</span><span class="p">(</span><span class="ss">:ruby</span><span class="p">)</span><span class="o">.</span><span class="n">title</span><span class="p">,</span>
+                              <span class="ss">:description</span> <span class="o">=&gt;</span> <span class="s2">&quot;yyy&quot;</span><span class="p">,</span>
+                              <span class="ss">:price</span> <span class="o">=&gt;</span> <span class="mi">1</span><span class="p">,</span>
+                              <span class="ss">:image_url</span> <span class="o">=&gt;</span> <span class="s2">&quot;fred.gif&quot;</span><span class="p">)</span>
+        <span class="n">assert</span> <span class="o">!</span><span class="n">product</span><span class="o">.</span><span class="n">save</span>
+        <span class="n">assert_equal</span> <span class="no">I18n</span><span class="o">.</span><span class="n">translate</span><span class="p">(</span><span class="s1">&#39;activerecord.errors.messages.taken&#39;</span><span class="p">),</span>
+            <span class="n">product</span><span class="o">.</span><span class="n">errors</span><span class="o">[</span><span class="ss">:title</span><span class="o">].</span><span class="n">join</span><span class="p">(</span><span class="s1">&#39;; &#39;</span><span class="p">)</span>
+    <span class="k">end</span>
+<span class="k">end</span>
+</pre></div>
+</div>
+<p>对 Product 测试的内容包括：</p>
+<ol class="arabic simple">
+<li>title，description，price，image_url 不能为空；</li>
+<li>price 必须大于零；</li>
+<li>image_url 必须以 jpg，png，gif 结尾，并且对大小写不敏感；</li>
+<li>title 必须唯一。</li>
+</ol>
+<p>让我们在 Django 中进行这些测试。由于 ProductForm 包含了模型校验和表单校验规则，使用 ProductForm 可以很容易的实现上述测试:</p>
+<div class="highlight-python"><div class="highlight"><pre><span></span><span class="c1"># depot/depotapp/tests.py</span>
+<span class="c1">#/usr/bin/python</span>
+<span class="c1"># -*- coding: utf8 -*-</span>
+<span class="kn">from</span> <span class="nn">django.test</span> <span class="kn">import</span> <span class="n">TestCase</span>
+<span class="kn">from</span> <span class="nn">forms</span> <span class="kn">import</span> <span class="n">ProductForm</span>
+
+
+<span class="k">class</span> <span class="nc">SimpleTest</span><span class="p">(</span><span class="n">TestCase</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">test_basic_addition</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Tests that 1 + 1 always equals 2.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertEqual</span><span class="p">(</span><span class="mi">1</span> <span class="o">+</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">)</span>
+
+
+<span class="k">class</span> <span class="nc">ProductTest</span><span class="p">(</span><span class="n">TestCase</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">setUp</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">product</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="s1">&#39;title&#39;</span><span class="p">:</span><span class="s1">&#39;My Book Title&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;description&#39;</span><span class="p">:</span><span class="s1">&#39;yyy&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;image_url&#39;</span><span class="p">:</span><span class="s1">&#39;https://img3.doubanio.com/mpic/s1727290.jpg&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;price&#39;</span><span class="p">:</span><span class="mi">1</span>
+        <span class="p">}</span>
+
+        <span class="n">f</span> <span class="o">=</span> <span class="n">ProductForm</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">product</span><span class="p">)</span>
+        <span class="n">f</span><span class="o">.</span><span class="n">save</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">product</span><span class="p">[</span><span class="s1">&#39;title&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;My Another Book Title&#39;</span>
+
+    <span class="k">def</span> <span class="nf">test_attrs_cannot_empty</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39;title，description，price，image_url不能为空</span>
+<span class="sd">        &#39;&#39;&#39;</span>
+        <span class="n">f</span> <span class="o">=</span> <span class="n">ProductForm</span><span class="p">({})</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertFalse</span><span class="p">(</span><span class="n">f</span><span class="o">.</span><span class="n">is_valid</span><span class="p">())</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertTrue</span><span class="p">(</span><span class="n">f</span><span class="p">[</span><span class="s1">&#39;title&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">errors</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertTrue</span><span class="p">(</span><span class="n">f</span><span class="p">[</span><span class="s1">&#39;description&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">errors</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertTrue</span><span class="p">(</span><span class="n">f</span><span class="p">[</span><span class="s1">&#39;price&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">errors</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertTrue</span><span class="p">(</span><span class="n">f</span><span class="p">[</span><span class="s1">&#39;image_url&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">errors</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">test_price_positive</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39;price必须大于零</span>
+<span class="sd">        &#39;&#39;&#39;</span>
+        <span class="n">f</span> <span class="o">=</span> <span class="n">ProductForm</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">product</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertTrue</span><span class="p">(</span><span class="n">f</span><span class="o">.</span><span class="n">is_valid</span><span class="p">())</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">product</span><span class="p">[</span><span class="s1">&#39;price&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="n">f</span> <span class="o">=</span> <span class="n">ProductForm</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">product</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertFalse</span><span class="p">(</span><span class="n">f</span><span class="o">.</span><span class="n">is_valid</span><span class="p">())</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">product</span><span class="p">[</span><span class="s1">&#39;price&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="o">-</span><span class="mi">1</span>
+        <span class="n">f</span> <span class="o">=</span> <span class="n">ProductForm</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">product</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertFalse</span><span class="p">(</span><span class="n">f</span><span class="o">.</span><span class="n">is_valid</span><span class="p">())</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">product</span><span class="p">[</span><span class="s1">&#39;price&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="mi">1</span>
+
+    <span class="k">def</span> <span class="nf">test_imgae_url_endwiths</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39;image_url必须以jpg，png，jpg结尾，并且对大小写不敏感</span>
+<span class="sd">        &#39;&#39;&#39;</span>
+        <span class="n">url_base</span> <span class="o">=</span> <span class="s1">&#39;http://www.baidu.com/&#39;</span>
+        <span class="n">oks</span> <span class="o">=</span> <span class="p">(</span><span class="s1">&#39;fred.gif&#39;</span><span class="p">,</span> <span class="s1">&#39;fred.jpg&#39;</span><span class="p">,</span> <span class="s1">&#39;fred.png&#39;</span><span class="p">,</span> <span class="s1">&#39;FRED.JPG&#39;</span><span class="p">,</span> <span class="s1">&#39;FRED.Jpg&#39;</span><span class="p">)</span>
+        <span class="n">bads</span> <span class="o">=</span> <span class="p">(</span><span class="s1">&#39;fred.doc&#39;</span><span class="p">,</span> <span class="s1">&#39;fred.gif/more&#39;</span><span class="p">,</span> <span class="s1">&#39;fred.gif.more&#39;</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">endwith</span> <span class="ow">in</span> <span class="n">oks</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">product</span><span class="p">[</span><span class="s1">&#39;image_url&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">url_base</span><span class="o">+</span><span class="n">endwith</span>
+            <span class="n">f</span> <span class="o">=</span> <span class="n">ProductForm</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">product</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">assertTrue</span><span class="p">(</span><span class="n">f</span><span class="o">.</span><span class="n">is_valid</span><span class="p">(),</span><span class="n">msg</span><span class="o">=</span><span class="s1">&#39;error when image_url endwith &#39;</span><span class="o">+</span><span class="n">endwith</span><span class="p">)</span>
+
+        <span class="k">for</span> <span class="n">endwith</span> <span class="ow">in</span> <span class="n">bads</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">product</span><span class="p">[</span><span class="s1">&#39;image_url&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">url_base</span><span class="o">+</span><span class="n">endwith</span>
+            <span class="n">f</span> <span class="o">=</span> <span class="n">ProductForm</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">product</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">assertFalse</span><span class="p">(</span><span class="n">f</span><span class="o">.</span><span class="n">is_valid</span><span class="p">(),</span><span class="n">msg</span><span class="o">=</span><span class="s1">&#39;error when image_url endwith &#39;</span><span class="o">+</span><span class="n">endwith</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">product</span><span class="p">[</span><span class="s1">&#39;image_url&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;https://img3.doubanio.com/mpic/s1727290.jpg&#39;</span>
+
+    <span class="k">def</span> <span class="nf">test_title_unique</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39;titile必须唯一</span>
+<span class="sd">        &#39;&#39;&#39;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">product</span><span class="p">[</span><span class="s1">&#39;title&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;My Book Title&#39;</span>
+        <span class="n">f</span> <span class="o">=</span> <span class="n">ProductForm</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">product</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertFalse</span><span class="p">(</span><span class="n">f</span><span class="o">.</span><span class="n">is_valid</span><span class="p">())</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">product</span><span class="p">[</span><span class="s1">&#39;title&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;My Another Book Title&#39;</span>
+</pre></div>
+</div>
+<p>然后运行 <cite>$ python manage.py test depotapp.ProductTest</cite>，如同预想的那样，测试没有通过:</p>
+<div class="highlight-python"><div class="highlight"><pre><span></span>$ python manage.py test depotapp.ProductTest
+Creating test database for alias &#39;default&#39;...
+.F..
+======================================================================
+FAIL: test_imgae_url_endwiths (depotapp.tests.ProductTest)
+image_url必须以jpg，png，jpg结尾，并且对大小写不敏感
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File &quot;/Users/xuehao/Documents/depot_master/depot/depotapp/tests.py&quot;, line 63, in test_imgae_url_endwiths
+    self.assertTrue(f.is_valid(),msg=&#39;error when image_url endwith &#39;+endwith)
+AssertionError: error when image_url endwith FRED.JPG
+
+----------------------------------------------------------------------
+Ran 4 tests in 0.969s
+
+FAILED (failures=1)
+Destroying test database for alias &#39;default&#39;...
+</pre></div>
+</div>
+<p>因为我们之前并没有考虑到 image_url 的图片扩展名可能会大写。修改 ProductForm 的相关部分如下:</p>
+<div class="highlight-python"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">clean_image_url</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="n">url</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">cleaned_data</span><span class="p">[</span><span class="s1">&#39;image_url&#39;</span><span class="p">]</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">endsWith</span><span class="p">(</span><span class="n">url</span><span class="o">.</span><span class="n">lower</span><span class="p">(),</span> <span class="s1">&#39;.jpg&#39;</span><span class="p">,</span> <span class="s1">&#39;.png&#39;</span><span class="p">,</span> <span class="s1">&#39;.gif&#39;</span><span class="p">):</span>
+        <span class="k">raise</span> <span class="n">forms</span><span class="o">.</span><span class="n">ValidationError</span><span class="p">(</span><span class="s1">&#39;图片格式必须为jpg、png或gif&#39;</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">url</span>
+</pre></div>
+</div>
+<p>然后再运行测试:</p>
+<div class="highlight-python"><div class="highlight"><pre><span></span>$ python manage.py test depotapp.ProductTest
+Creating test database for alias &#39;default&#39;...
+....
+----------------------------------------------------------------------
+Ran 4 tests in 1.292s
+
+OK
+Destroying test database for alias &#39;default&#39;...
+</pre></div>
+</div>
+<p>测试通过，并且通过单元测试，我们发现并解决了一个 bug。</p>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+  
+    <a href="http://github.com/xuehao/Practical_Django"><img style="position: fixed; top: 0; right: 0; border: 0;"
+    src="http://s3.amazonaws.com/github/ribbons/forkme_right_darkblue_121621.png" alt="Fork me on GitHub" /></a>
+  
+
+  
+
+  </body>
+</html>

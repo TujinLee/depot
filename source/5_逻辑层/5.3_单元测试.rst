@@ -1,0 +1,241 @@
+*****************
+逻辑层：单元测试
+*****************
+
+尽早进行单元测试（UnitTest）是比较好的做法，极端的情况甚至强调“测试先行”。现在我们已经有了第一个 model 类和 Form 类，是时候开始写测试代码了。
+
+Django 支持 Python 的单元测试（unit test）和文本测试（doc test），我们这里主要讨论单元测试的方式。这里不对单元测试的理论做过多的阐述，假设你已经熟悉了下列概念：test suite，test case，test/test action，test data，assert 等等。
+
+在单元测试方面，Django 继承 Python 的 unittest.TestCase 实现了自己的 django.test.TestCase，编写测试用例通常从这里开始。测试代码通常位于 app 的 tests.py 文件中（也可以在 `models.py` 中编写，但是我不建议这样做）。在 Django 生成的 depotapp 中，已经包含了这个文件，并且其中包含了一个测试用例的样例::
+
+    from django.test import TestCase
+
+
+    class SimpleTest(TestCase):
+        def test_basic_addition(self):
+            """
+            Tests that 1 + 1 always equals 2.
+            """
+            self.assertEqual(1 + 1, 2)
+
+你可以有几种方式运行单元测试：
+
+- `python manage.py test`：执行所有的测试用例
+- `python manage.py test app_name`：执行该app的所有测试用例
+- `python manage.py test app_name.case_name`：执行指定的测试用例
+
+用第三种方式执行上面提供的样例，结果如下::
+
+    $ python manage.py test depotapp.Simplest
+    Creating test database for alias 'default'...
+    .
+    ----------------------------------------------------------------------
+    Ran 1 test in 0.000s
+
+    OK
+    Destroying test database for alias 'default'...
+
+你可能会主要到，输出信息中包括了创建和删除数据库的操作。为了避免测试数据造成的影响，测试过程会使用一个单独的数据库，关于如何指定测试数据库 的细节，请查阅 Django 文档。在我们的例子中，由于使用 sqlite 数据库，Django 将默认采用内存数据库来进行测试。
+
+下面就让我们来编写测试用例。在《Agile Web Development with Rails 4th》中，7.2节，最终实现的 ProductTest 代码如下：
+
+.. code-block:: ruby
+
+    class ProductTest < ActiveSupport::TestCase
+        test "product attributes must not be empty" do
+            product = Product.new
+            assert product.invalid?
+            assert product.errors[:title].any?
+            assert product.errors[:description].any?
+            assert product.errors[:price].any?
+            assert product.errors[:image_url].any?
+        end
+
+        test "product price must be positive" do
+            product = Product.new(:title => "My Book Title",
+                                  :description => "yyy",
+                                  :image_url => "zzz.jpg")
+            product.price = -1
+            assert product.invalid?
+            assert_equal "must be greater than or equal to 0.01",
+                product.errors[:price].join('; ')
+
+            product.price = 0
+            assert product.invalid?
+            assert_equal "must be greater than or equal to 0.01",
+                product.errors[:price].join('; ')
+
+            product.price = 1
+            assert product.valid?
+        end
+
+        def new_product(image_url)
+            Product.new(:title => "My Book Title",
+                        :description => "yyy",
+                        :price => 1,
+                        :image_url => image_url)
+        end
+
+        test "image url" do
+            ok = %w{ fred.gif fred.jpg fred.png FRED.JPG FRED.Jpg
+                    http://a.b.c/x/y/z/fred.gif }
+            bad = %w{ fred.doc fred.gif/more fred.gif.more }
+
+            ok.each do |name|
+                assert new_product(name).valid?, "#{name} shouldn't be invalid"
+            end
+
+            bad.each do |name|
+                assert new_product(name).invalid?, "#{name} shouldn't be valid"
+            end
+        end
+
+        test "product is not valid without a unique title" do
+            product = Product.new(:title => products(:ruby).title,
+                                  :description => "yyy",
+                                  :price => 1,
+                                  :image_url => "fred.gif")
+            assert !product.save
+            assert_equal "has already been taken", product.errors[:title].join('; ')
+        end
+
+        test "product is not valid without a unique title - i18n" do
+            product = Product.new(:title => products(:ruby).title,
+                                  :description => "yyy",
+                                  :price => 1,
+                                  :image_url => "fred.gif")
+            assert !product.save
+            assert_equal I18n.translate('activerecord.errors.messages.taken'),
+                product.errors[:title].join('; ')
+        end
+    end
+
+对 Product 测试的内容包括：
+
+1. title，description，price，image_url 不能为空；
+2. price 必须大于零；
+3. image_url 必须以 jpg，png，gif 结尾，并且对大小写不敏感；
+4. title 必须唯一。
+
+让我们在 Django 中进行这些测试。由于 ProductForm 包含了模型校验和表单校验规则，使用 ProductForm 可以很容易的实现上述测试::
+
+    # depot/depotapp/tests.py
+    #/usr/bin/python
+    # -*- coding: utf8 -*-
+    from django.test import TestCase
+    from forms import ProductForm
+
+
+    class SimpleTest(TestCase):
+        def test_basic_addition(self):
+            """
+            Tests that 1 + 1 always equals 2.
+            """
+            self.assertEqual(1 + 1, 2)
+
+
+    class ProductTest(TestCase):
+        def setUp(self):
+            self.product = {
+                'title':'My Book Title',
+                'description':'yyy',
+                'image_url':'https://img3.doubanio.com/mpic/s1727290.jpg',
+                'price':1
+            }
+
+            f = ProductForm(self.product)
+            f.save()
+            self.product['title'] = 'My Another Book Title'
+
+        def test_attrs_cannot_empty(self):
+            '''title，description，price，image_url不能为空
+            '''
+            f = ProductForm({})
+            self.assertFalse(f.is_valid())
+            self.assertTrue(f['title'].errors)
+            self.assertTrue(f['description'].errors)
+            self.assertTrue(f['price'].errors)
+            self.assertTrue(f['image_url'].errors)
+
+        def test_price_positive(self):
+            '''price必须大于零
+            '''
+            f = ProductForm(self.product)
+            self.assertTrue(f.is_valid())
+
+            self.product['price'] = 0
+            f = ProductForm(self.product)
+            self.assertFalse(f.is_valid())
+
+            self.product['price'] = -1
+            f = ProductForm(self.product)
+            self.assertFalse(f.is_valid())
+
+            self.product['price'] = 1
+
+        def test_imgae_url_endwiths(self):
+            '''image_url必须以jpg，png，jpg结尾，并且对大小写不敏感
+            '''
+            url_base = 'http://www.baidu.com/'
+            oks = ('fred.gif', 'fred.jpg', 'fred.png', 'FRED.JPG', 'FRED.Jpg')
+            bads = ('fred.doc', 'fred.gif/more', 'fred.gif.more')
+            for endwith in oks:
+                self.product['image_url'] = url_base+endwith
+                f = ProductForm(self.product)
+                self.assertTrue(f.is_valid(),msg='error when image_url endwith '+endwith)
+
+            for endwith in bads:
+                self.product['image_url'] = url_base+endwith
+                f = ProductForm(self.product)
+                self.assertFalse(f.is_valid(),msg='error when image_url endwith '+endwith)
+
+            self.product['image_url'] = 'https://img3.doubanio.com/mpic/s1727290.jpg'
+
+        def test_title_unique(self):
+            '''titile必须唯一
+            '''
+            self.product['title'] = 'My Book Title'
+            f = ProductForm(self.product)
+            self.assertFalse(f.is_valid())
+            self.product['title'] = 'My Another Book Title'
+
+然后运行 `$ python manage.py test depotapp.ProductTest`，如同预想的那样，测试没有通过::
+
+    $ python manage.py test depotapp.ProductTest
+    Creating test database for alias 'default'...
+    .F..
+    ======================================================================
+    FAIL: test_imgae_url_endwiths (depotapp.tests.ProductTest)
+    image_url必须以jpg，png，jpg结尾，并且对大小写不敏感
+    ----------------------------------------------------------------------
+    Traceback (most recent call last):
+      File "/Users/xuehao/Documents/depot_master/depot/depotapp/tests.py", line 63, in test_imgae_url_endwiths
+        self.assertTrue(f.is_valid(),msg='error when image_url endwith '+endwith)
+    AssertionError: error when image_url endwith FRED.JPG
+
+    ----------------------------------------------------------------------
+    Ran 4 tests in 0.969s
+
+    FAILED (failures=1)
+    Destroying test database for alias 'default'...
+
+因为我们之前并没有考虑到 image_url 的图片扩展名可能会大写。修改 ProductForm 的相关部分如下::
+
+    def clean_image_url(self):
+        url = self.cleaned_data['image_url']
+        if not endsWith(url.lower(), '.jpg', '.png', '.gif'):
+            raise forms.ValidationError('图片格式必须为jpg、png或gif')
+        return url
+
+然后再运行测试::
+
+    $ python manage.py test depotapp.ProductTest
+    Creating test database for alias 'default'...
+    ....
+    ----------------------------------------------------------------------
+    Ran 4 tests in 1.292s
+
+    OK
+    Destroying test database for alias 'default'...
+
+测试通过，并且通过单元测试，我们发现并解决了一个 bug。

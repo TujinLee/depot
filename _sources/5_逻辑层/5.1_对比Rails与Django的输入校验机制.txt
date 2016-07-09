@@ -1,0 +1,65 @@
+*******************************************
+逻辑层：对比 Rails 与 Django 的输入校验机制
+*******************************************
+
+Rails 有一个“简洁、完美的验证机制，无比强大的表达式和验证框架”。在《Agile Web Development with Rails 4th》一书的7.1节向我们展示了如何验证 Product：
+
+.. code-block:: ruby
+
+    class Product < ActiveRecord::Base
+        validates :title, :description, :image_url, :presence => true
+        validates :price, :numericality => {:greater_than_or_equal_to => 0.01}
+        validates :title, :uniqueness => true
+        validates :image_url, :format => {
+            :with => %r{\.(gif|jpg|png)$}i,
+            :message => 'must be a URL for GIF, JPG or PNG image.'
+        }
+    end
+
+还是需要解释一下：
+
+- `validates :title, :description, :image_url, :presence => true`：这三个字段不能为空。Rails 默认是允许为空。而且由于 model 与 migration 是分开定义的，你可以在 migration 中定义字段不能为空而 model 中可以为空，或者反之。
+- `validates :price, :numericality => {:greater_than_or_equal_to => 0.01}`：price 字段应该是有效的数字并且不小于0.01。
+- `validates :image_url, :format => {…}: image_url`：必须以三种扩展名结尾，这里没有验证是否为有效的 url。
+
+更加可怕的是，这个验证语法是 Rails 3.0 开始支持的，而在此之前的版本要写成这样：
+
+.. code-block:: ruby
+
+    class Product < ActiveRecord::Base
+        validates_presence_of :title, :description, :image_url
+        validates_numericality_of :price
+        validates_format_of :image_url,:with => %r{^http:.+.(gif|jpg|png)$}i,
+        :message => "must be a URL for a GIF, JPG, or PNG image"
+        protected
+            def validate
+                errors.add(:price, "should be positive") unless price.nil? || price > 0.0
+            end
+    end
+
+再让我们看看“简洁”的 Rails 验证还有哪些功能（旧版语法）：
+
+- `validates_acceptance_of`：验证指定checkbox应该选中。这个怎么看都应该是form中的验证而与model无关
+- `validates_associated`：验证关联关系
+- `validates_confirmation_of`：验证xxx与xxx_confirmation的值应该相同。  这个怎么看也应该是form中的验证而与model无关
+- `validates_length_of`：检查长度
+- `validates_each`：使用block检验一个或一个以上参数
+- `validates_exclusion_of`：确定被检对象不包括指定数据
+- `validates_inclusion_of`：确认对象包括在指定范围
+- `validates_uniqueness_of`：检验对象是否不重复
+
+也许还有 more and more, and more, and more…
+
+回到 Django。
+
+Django 的验证有3层机制：
+
+1. Field 类型验证：除了能够对应到数据库字段类型的 Field 类型外，还有 EmailField，FileField，FilePathField，ImageField，IPAddressField，PhoneNumberField，URLField，XMLField 等。
+2. Field 选项验证：如 null=true，blank=true，choices，editable，unique，unique_for_date，unique_for_month，unique_for_year 等等。有些 Field 还有自己独有的选项，也可以用来约束数据。
+3. 表单（Form）验证：还可以在 Form 中定义验证方法。可以定义整个 Form 的验证方法 clean，或者针对某个表单项的验证方法：clean_xxx。
+
+前面建立的 Product 模型中，已经默认加入了不能为空、要求符合数字等验证，所以还需要进行如下验证：
+
+1. 验证 price>0：需要在 Form 中验证；
+2. 验证 title 唯一：在 Model 中验证；
+3. 验证 image_url 的扩展名：在 Form中 验证，还可以顺便在 Model 中将其改为 URLField 类型。

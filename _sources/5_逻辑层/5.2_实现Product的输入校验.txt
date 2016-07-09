@@ -1,0 +1,98 @@
+********************************
+逻辑层：实现 Product 的输入校验
+********************************
+
+让我们完成上一节中的任务：
+
+1. 验证 price>0:需要在 Form 中验证；
+2. 验证 title 唯一：在 Model 中验证；
+3. 验证 image_url 的扩展名：在 Form 中验证，还可以顺便在 Model 中将其改为 URLField 类型。
+
+之前生成的 scaffold 中已经实现了属性不能为空的验证：
+
+.. image:: ../_images/5.2_validate.png
+
+但是对于 url 格式，url 的后缀，title 的唯一性都没有验证。首先在 model 中增加 URL 格式和 title 唯一性的校验::
+
+    from django.db import models
+
+    class Product(models.Model):
+        title = models.CharField(max_length=100,unique=True)
+        description = models.TextField()
+        image_url = models.URLField(max_length=200)
+        price = models.DecimalField(max_digits=8,decimal_places=2)
+
+在 title 上增加 unique=True, 并将 image_url 的类型改为 URLField，就完成了：
+
+.. image:: ../_images/5.2_validate2.png
+
+剩下的图片格式后缀、价格>0的校验需要在 form 中实现::
+
+    #/usr/bin/python
+    # -*- coding: utf8 -*-
+
+    from django import forms
+    from models import *
+    import itertools
+
+    def anyTrue(predicate, sequence):
+        return True in itertools.imap(predicate, sequence)
+
+    def endsWith(s, *endings):
+        return anyTrue(s.endswith, endings)
+
+    class ProductForm(forms.ModelForm):
+
+        class Meta:
+            model = Product
+
+        def __init__(self, *args, **kwargs):
+            super(ProductForm, self).__init__(*args, **kwargs)
+
+        def clean_price(self):
+            price = self.cleaned_data['price']
+            if price<=0:
+                raise forms.ValidationError("价格必须大于零")
+            return price
+
+        def clean_image_url(self):
+            url = self.cleaned_data['image_url']
+            if not endsWith(url, '.jpg', '.png', '.gif'):
+                raise forms.ValidationError('图片格式必须为jpg、png或gif')
+            return url
+
+ProductForm 继承自 ModelForm，可以根据 model 属性自动生成表单。
+
+在生成的 ProductForm 上增加了 clean_price 和 clean_image_url 验证。结果如下：
+
+.. image:: ../_images/5.2_validate3.png
+
+那么，表单是如何展现的呢？看一下 template：
+
+.. code-block:: html+django
+
+    # depot/depotapp/templates/depotapp/create_product.html
+
+    {% extends "base.html" %}
+
+    {% block title %} 创建产品 {% endblock %}
+
+    {% block content %}
+
+    <h2>创建产品</h2>
+
+    <table>
+        <form action="" method="POST">
+            {% csrf_token %}
+            {{ form }}
+            <tr>
+              <td colspan="2" align="right"><input type="submit" value="创建"/></td>
+            </tr>
+        </form>
+    </table>
+
+    {% endblock %}
+
+直接输出 form 对象 `{{ form }}` 就会将 Form 格式化成表单（默认使用 table，也可以通过 as_p，as_ul 方法指定为 `<p>` 或 `<li>`），并且包含了错误提示信息。
+
+`{% csrf_token %}` 的作用是增加 token 表单项，避免重复提交防止跨站伪造请求攻击。
